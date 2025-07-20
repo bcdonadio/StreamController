@@ -87,7 +87,7 @@
 }
 .key-button{
   border-radius: 10px;
-  min-width:75px;	
+  min-width:75px;
 	min-height:75px;
   padding-left: 0px;
   padding-right: 0px;
@@ -223,10 +223,10 @@
 .warning-label {
 	color: #EA735D;
 }
-.confirm-button { 
+.confirm-button {
 	background-color: #4990E7;
 }
-.confirm-button-error { 
+.confirm-button-error {
 	background-color: #EA735D;
 }
 
@@ -368,7 +368,7 @@
   background-color: #363636;
 }
 .dial {
-  min-width:75px;	
+  min-width:75px;
   min-height:75px;
   padding-left: 0px;
   padding-right: 0px;
@@ -394,7 +394,7 @@
   border-color: #00000000;
 }
 
-.action-row-toggle:toggled {
+.action-row-toggle:checked {
   background-color: red;
 }
 
