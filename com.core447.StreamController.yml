@@ -1,6 +1,6 @@
 id: com.core447.StreamController
 runtime: org.gnome.Platform
-runtime-version: '47'
+runtime-version: '48'
 sdk: org.gnome.Sdk
 command: launch.sh
 
@@ -30,9 +30,9 @@ modules:
   - name: hidapi-libusb
     buildsystem: autotools
     sources:
-      - type: git
-        url: https://github.com/libusb/hidapi.git
-        tag: hidapi-0.14.0
+      - type: archive
+        url: https://github.com/libusb/hidapi/archive/refs/tags/hidapi-0.15.0.tar.gz
+        sha256: 5d84dec684c27b97b921d2f3b73218cb773cf4ea915caee317ac8fc73cef8136
 
   - name: gusb
     buildsystem: meson
@@ -54,9 +54,9 @@ modules:
       - -Dgtk_doc=false
       - -Dlua51=false
     sources:
-      - type: git
-        url: https://gitlab.gnome.org/GNOME/libpeas.git
-        tag: 2.0.5
+      - type: archive
+        url: https://download.gnome.org/sources/libpeas/2.0/libpeas-2.0.7.tar.xz
+        sha256: 1e9a9d69761d2109eff5b7c11d8c96b4867ccfaca2b921eded49401192769ec9
 
   - name: libportal
     buildsystem: meson
