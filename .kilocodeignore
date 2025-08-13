@@ -1,0 +1,133 @@
+# Python + Qt5 + Flatpak - common ignore patterns
+
+# Python bytecode/cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Distribution / packaging
+build/
+dist/
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+pip-wheel-metadata/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache/
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Type checkers / static analysis
+.mypy_cache/
+.pytype/
+.pyre/
+.ruff_cache/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# Logs
+*.log
+logs/
+
+# Editor/IDE
+.idea/
+.vscode/
+*.code-workspace
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Qt/Qt Creator artifacts
+*.pro.user
+*.pro.user.*
+*.qbs.user
+*.qbs.user.*
+*.mkspecs
+*.qmlc
+*.jsc
+*.qmake.stash
+.qtc_clangd/
+CMakeLists.txt.user
+Makefile*
+moc_*
+obj/
+.qmake.cache
+*.autosave
+*.qrc.depends
+
+# Generated Python from Qt Designer/resources (if generated at build)
+ui_*.py
+qrc_*.py
+
+# Compiled Qt translations (generated)
+*.qm
+
+# Gettext compiled catalogs
+locales/**/LC_MESSAGES/*.mo
+
+# PyInstaller
+*.spec
+
+# Flatpak / flatpak-builder outputs
+.flatpak-builder/
+flatpak/.flatpak-builder/
+.flatpak/
+*.flatpak
+*.flatpakref
+build-dir/
+builddir/
+repo/
+export/
+exports/
+app/
+manifest.json
+flatpak-build/
+flatpak/build/
+flatpak/repo/
+flatpak/export/
+flatpak/app/
+flatpak/build-dir/
+var/tmp/flatpak-cache/
+.flatpak-builder-cache/
+
+# System files / patches
+*.orig
+*.rej

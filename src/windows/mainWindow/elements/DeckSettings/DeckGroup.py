@@ -66,29 +66,67 @@ class Rotation(Adw.PreferencesRow):
         self.rotation_label = Gtk.Label(label=gl.lm.get("deck.deck-group.rotation"), hexpand=True, xalign=0)
         self.main_box.append(self.rotation_label)
 
-        self.toggle_group = Adw.ToggleGroup()
-        self.main_box.append(self.toggle_group)
+        # Check if ToggleGroup is available (libadwaita 1.7+)
+        try:
+            self.toggle_group = Adw.ToggleGroup()
+            self.main_box.append(self.toggle_group)
 
-        self.toggle_0 = Adw.Toggle(label="0°", name="0")
-        self.toggle_group.add(self.toggle_0)
+            self.toggle_0 = Adw.Toggle(label="0°", name="0")
+            self.toggle_group.add(self.toggle_0)
 
-        self.toggle_90 = Adw.Toggle(label="90°", name="90")
-        self.toggle_group.add(self.toggle_90)
+            self.toggle_90 = Adw.Toggle(label="90°", name="90")
+            self.toggle_group.add(self.toggle_90)
 
-        self.toggle_180 = Adw.Toggle(label="180°", name="180")
-        self.toggle_group.add(self.toggle_180)
+            self.toggle_180 = Adw.Toggle(label="180°", name="180")
+            self.toggle_group.add(self.toggle_180)
 
-        self.toggle_270 = Adw.Toggle(label="270°", name="270")
-        self.toggle_group.add(self.toggle_270)
+            self.toggle_270 = Adw.Toggle(label="270°", name="270")
+            self.toggle_group.add(self.toggle_270)
 
+            self.toggle_group.connect("notify::active", self.on_value_changed)
+            self.using_toggle_group = True
+        except AttributeError:
+            # Fallback for libadwaita 1.6.6 (GNOME 48 runtime)
+            self.toggle_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+            self.main_box.append(self.toggle_box)
 
-        self.toggle_group.connect("notify::active", self.on_value_changed)
+            self.toggle_0 = Gtk.ToggleButton(label="0°", name="0")
+            self.toggle_box.append(self.toggle_0)
+
+            self.toggle_90 = Gtk.ToggleButton(label="90°", name="90")
+            self.toggle_box.append(self.toggle_90)
+
+            self.toggle_180 = Gtk.ToggleButton(label="180°", name="180")
+            self.toggle_box.append(self.toggle_180)
+
+            self.toggle_270 = Gtk.ToggleButton(label="270°", name="270")
+            self.toggle_box.append(self.toggle_270)
+
+            # Create button group
+            self.button_group = Gtk.ToggleButton()
+            self.toggle_0.set_group(self.button_group)
+            self.toggle_90.set_group(self.button_group)
+            self.toggle_180.set_group(self.button_group)
+            self.toggle_270.set_group(self.button_group)
+
+            self.toggle_0.connect("toggled", self.on_fallback_value_changed)
+            self.toggle_90.connect("toggled", self.on_fallback_value_changed)
+            self.toggle_180.connect("toggled", self.on_fallback_value_changed)
+            self.toggle_270.connect("toggled", self.on_fallback_value_changed)
+            self.using_toggle_group = False
 
     def on_value_changed(self, _, __):
         GLib.idle_add(self.on_value_changed_idle)
 
     def on_value_changed_idle(self):
-        rot = int(self.toggle_group.get_active_name())
+        if self.using_toggle_group:
+            rot = int(self.toggle_group.get_active_name())
+        else:
+            # Fallback for GTK ToggleButtons
+            for toggle in [self.toggle_0, self.toggle_90, self.toggle_180, self.toggle_270]:
+                if toggle.get_active():
+                    rot = int(toggle.get_name())
+                    break
 
         deck_settings = gl.settings_manager.get_deck_settings(self.deck_serial_number)
         deck_settings["rotation"] = rot
@@ -96,13 +134,23 @@ class Rotation(Adw.PreferencesRow):
 
         self.settings_page.deck_controller.set_rotation(rot)
 
+    def on_fallback_value_changed(self, toggle_button):
+        if toggle_button.get_active():
+            GLib.idle_add(self.on_value_changed_idle)
+
     def load_default(self, *args):
-        better_disconnect(self.toggle_group, "notify::active")
-
-        rot = gl.settings_manager.get_deck_settings(self.deck_serial_number).get("rotation", 0)
-        self.toggle_group.set_active_name(str(rot))
-
-        self.toggle_group.connect("notify::active", self.on_value_changed)
+        if self.using_toggle_group:
+            better_disconnect(self.toggle_group, "notify::active")
+            rot = gl.settings_manager.get_deck_settings(self.deck_serial_number).get("rotation", 0)
+            self.toggle_group.set_active_name(str(rot))
+            self.toggle_group.connect("notify::active", self.on_value_changed)
+        else:
+            # Fallback for GTK ToggleButtons
+            rot = gl.settings_manager.get_deck_settings(self.deck_serial_number).get("rotation", 0)
+            for toggle in [self.toggle_0, self.toggle_90, self.toggle_180, self.toggle_270]:
+                if toggle.get_name() == str(rot):
+                    toggle.set_active(True)
+                    break
 
 
 class Brightness(Adw.PreferencesRow):
@@ -162,10 +210,10 @@ class Brightness(Adw.PreferencesRow):
             self.on_map_tasks.clear()
             self.on_map_tasks.append(lambda: self.load_default())
             return
-        
+
         original_values = gl.settings_manager.get_deck_settings(self.deck_serial_number)
-        
-        # Set defaut values 
+
+        # Set defaut values
         original_values.setdefault("brightness", {})
         brightness = original_values["brightness"].setdefault("value", 50)
 
@@ -196,7 +244,7 @@ class Screensaver(Adw.PreferencesRow):
         for f in self.on_map_tasks:
             f()
         self.on_map_tasks.clear()
-    
+
     def build(self):
         self.main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, hexpand=True,
                                 margin_start=15, margin_end=15, margin_top=15, margin_bottom=15)
@@ -289,8 +337,8 @@ class Screensaver(Adw.PreferencesRow):
     def load_defaults(self):
         self.disconnect_signals()
         original_values = gl.settings_manager.get_deck_settings(self.deck_serial_number)
-        
-        # Set defaut values 
+
+        # Set defaut values
         original_values.setdefault("screensaver", {})
         enable = original_values["screensaver"].setdefault("enable", False)
         path = original_values["screensaver"].setdefault("path", None)
