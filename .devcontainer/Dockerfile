@@ -1,7 +1,7 @@
 FROM ubuntu:24.04
 
 # Define Python version as build argument with default
-ARG PYTHON_VERSION=3.12
+ARG PYTHON_VERSION=3.13
 
 # Prevent interactive prompts during apt installation
 ENV DEBIAN_FRONTEND=noninteractive
@@ -35,4 +35,4 @@ RUN uv python install ${PYTHON_VERSION} && \
     uv venv -p ${PYTHON_VERSION} .venv && \
     echo 'export PATH="/app/.venv/bin:$PATH"' >> ~/.bashrc
 
-CMD ["/bin/bash"] 
+CMD ["/bin/bash"]

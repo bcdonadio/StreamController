@@ -4,8 +4,8 @@
 
 StreamController uses Flatpak for packaging and distribution. The build system is configured with:
 
-- **Runtime**: GNOME Platform 47
-- **SDK**: GNOME SDK 47
+- **Runtime**: GNOME Platform 48
+- **SDK**: GNOME SDK 48
 - **Main Command**: `launch.sh` (launches Python application)
 
 ## Build Configuration Files
@@ -59,7 +59,7 @@ flatpak-builder --repo=repo --force-clean --install --user build-dir com.core447
 
 - **Flatpak Builder**: Required for build process
 - **Git**: For submodule initialization
-- **GNOME Platform 47 & SDK**: Runtime dependencies
+- **GNOME Platform 48 & SDK**: Runtime dependencies
 
 ## Build Process Results
 
@@ -70,8 +70,8 @@ flatpak-builder --repo=repo --force-clean --install --user build-dir com.core447
 - ✅ Documented dependency structure
 - ✅ Analyzed Python and system dependencies
 - ✅ **RESOLVED**: shared-modules directory missing (Git submodule) - Downloaded from flathub/shared-modules
-- ✅ **RESOLVED**: GNOME SDK 47 missing - Successfully installed (207.7 MB)
-- ✅ GNOME Platform 47 already installed
+- ✅ **RESOLVED**: GNOME SDK 48 missing - Successfully installed (207.7 MB)
+- ✅ GNOME Platform 48 already installed
 - ✅ flatpak-builder already available
 
 ### Build Execution
@@ -165,7 +165,7 @@ timeout 30 flatpak run com.core447.StreamController
 ```bash
 # Complete working build process:
 git submodule update --init --recursive  # Get shared-modules
-flatpak install org.gnome.Sdk//47 org.gnome.Platform//47  # Install runtime if missing
+flatpak install org.gnome.Sdk//48 org.gnome.Platform//48  # Install runtime if missing
 req2flatpak requirements.txt --requirements-out pypi-requirements.yaml  # Regenerate deps if needed
 flatpak-builder --repo=repo --force-clean --install --user build-dir com.core447.StreamController.yml
 timeout 30 flatpak run com.core447.StreamController  # Test with timeout

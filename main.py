@@ -28,12 +28,27 @@ import os
 import time
 import asyncio
 import threading
-import dbus
-import dbus.service
+# D-Bus compatibility: try to import dbus; if unavailable, set dbus to None and provide a no-op fallback for DBusGMainLoop.
+dbus = None
+dbus_service = None
+DBusGMainLoop = None
+try:
+    import dbus as _dbus
+    import dbus.service as _dbus_service
+    from dbus.mainloop.glib import DBusGMainLoop as _DBusGMainLoop
+    dbus = _dbus
+    dbus_service = _dbus_service
+    DBusGMainLoop = _DBusGMainLoop
+    log.info("dbus-python available")
+except Exception as exc:
+    log.warning(f"dbus-python not available: {exc}. D-Bus features will be disabled or will use Gio fallback where implemented.")
+    # provide a safe no-op so calls like DBusGMainLoop(...) won't crash
+    def DBusGMainLoop(set_as_default=True):
+        return None
 import usb.core
 import usb.util
 from StreamDeck.DeviceManager import DeviceManager
-from dbus.mainloop.glib import DBusGMainLoop
+# import dbus.mainloop.glib
 
 # Import own modules
 from src.app import App
@@ -266,6 +281,13 @@ def make_api_calls():
     if not gl.argparser.parse_args().change_page:
         return False
 
+    # If dbus-python isn't available, store requests for later and don't attempt D-Bus RPCs.
+    if dbus is None:
+        log.warning("dbus-python not available; cannot perform API calls via D-Bus. Queuing requests locally.")
+        for serial_number, page_name in gl.argparser.parse_args().change_page:
+            gl.api_page_requests[serial_number] = page_name
+        return False
+
     session_bus = dbus.SessionBus()
     obj: dbus.BusObject = None
     action_interface: dbus.Interface = None
@@ -300,14 +322,17 @@ def main():
                     'GSK_RENDERER=ngl to your "/etc/environment" file')
 
     dbus_running = False
-    try:
-        DBusGMainLoop(set_as_default=True)
-        dbus_running = True
-        # Dbus
-        quit_running()
-    except dbus.exceptions.DBusException as e:
-        log.warning("DBus is not available. Features like checking for running instances will be disabled.")
-        log.warning(f"DBus exception: {e}")
+    if dbus is not None:
+        try:
+            DBusGMainLoop(set_as_default=True)
+            dbus_running = True
+            # Dbus
+            quit_running()
+        except Exception as e:
+            log.warning("DBus is not available. Features like checking for running instances will be disabled.")
+            log.warning(f"DBus exception: {e}")
+    else:
+        log.warning("dbus-python not installed; DBus features disabled (use Gio fallback where implemented).")
 
     if dbus_running:
         reset_all_decks()

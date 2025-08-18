@@ -13,7 +13,10 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
 
-import dbus
+try:
+    import dbus as _dbus
+except Exception:
+    _dbus = None
 from re import sub
 import threading
 import time
@@ -39,8 +42,8 @@ class Gnome(Integration):
     def __init__(self, window_grabber: "WindowGrabber"):
         super().__init__(window_grabber=window_grabber)
 
-        self.bus: dbus.Bus = None
-        self.proxy =  None
+        self.bus = None
+        self.proxy = None
         self.interface = None
         self.connect_dbus()
 
@@ -50,43 +53,53 @@ class Gnome(Integration):
 
         if uuid in installed_extensions:
             return
-        
+
         gl.gnome_extensions.request_installation(uuid)
 
 
     def connect_dbus(self) -> None:
+        # If dbus-python is not available, skip attempting to connect and let
+        # higher-level fallbacks handle missing features.
+        if _dbus is None:
+            log.warning("dbus-python not available; Gnome window integration disabled.")
+            return
+
         try:
-            self.bus = dbus.SessionBus()
+            self.bus = _dbus.SessionBus()
             self.proxy = self.bus.get_object("org.gnome.Shell", "/org/gnome/Shell/Extensions/StreamController")
-            self.interface = dbus.Interface(self.proxy, "org.gnome.Shell.Extensions.StreamController")
+            self.interface = _dbus.Interface(self.proxy, "org.gnome.Shell.Extensions.StreamController")
+            # Connect signal for focused window changes
             self.interface.connect_to_signal("FocusedWindowChanged", self.on_window_changed)
-        except dbus.exceptions.DBusException as e:
+        except Exception as e:
             log.error(f"Failed to connect to D-Bus: {e}")
-            pass
+            # Leave attributes as None so callers detect lack of connection
+            self.bus = None
+            self.proxy = None
+            self.interface = None
 
 
     def on_window_changed(self, answer: str) -> None:
         answer = json.loads(answer)
         window = Window(answer.get("wm_class"), answer.get("title"))
         self.window_grabber.on_active_window_changed(window=window)
-        
+
     def get_all_windows(self) -> list[Window]:
         if not self.get_is_connected():
             return []
-        
+
         try:
             answer = json.loads(self.interface.GetAllWindows())
         except:
             return []
         windows: list[Window] = []
-        
+
         for window in answer:
             wm_class = window.get("wm_class")
             title = window.get("title")
             windows.append(Window(wm_class, title))
 
         return windows
-    
+
     def get_active_window (self) -> Window:
         if not self.get_is_connected():
             return None
@@ -95,8 +108,8 @@ class Gnome(Integration):
         except:
             return None
         wm_class = answer.get("wm_class")
-        title = answer.get("title") 
+        title = answer.get("title")
         return Window(wm_class, title)
-    
+
     def get_is_connected(self) -> bool:
         return None not in (self.bus, self.proxy, self.interface)

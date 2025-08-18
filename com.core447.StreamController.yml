@@ -6,6 +6,7 @@ command: launch.sh
 
 finish-args:
   - --socket=wayland
+  - --socket=session-bus
   - --socket=fallback-x11
   - --share=ipc
   - --device=dri
@@ -16,6 +17,7 @@ finish-args:
   - --talk-name=org.freedesktop.Flatpak       # Allow plugins to run system commands
   - --talk-name=org.mpris.MediaPlayer2.*      # Media control
   - --talk-name=org.kde.kdeconnect            # Access to KDEConnect
+  - --talk-name=org.kde.StatusNotifierWatcher # Allow registering StatusNotifier items (tray)
   - --talk-name=org.gnome.Shell               # Interact with Gnome - used to open the "Install extension" dialog
   - --talk-name=org.gnome.Shell.Extensions.StreamController
   - --talk-name=org.gnome.ScreenSaver
@@ -31,8 +33,41 @@ modules:
         url: https://github.com/NixOS/patchelf/releases/download/0.18.0/patchelf-0.18.0.tar.bz2
         sha256: 1952b2a782ba576279c211ee942e341748fdb44997f704dd53def46cd055470b
 
+  - name: python3-build-tools
+    buildsystem: simple
+    build-commands:
+      - pip3 install --verbose --exists-action=i --no-index --find-links="file://${PWD}" --prefix=${FLATPAK_DEST} --no-build-isolation meson meson-python setuptools
+    sources:
+      - type: file
+        url: https://files.pythonhosted.org/packages/ab/3b/63fdad828b4cbeb49cef3aad26f3edfbc72f37a0ab54917d445ec0b9d9ff/meson-1.7.0-py3-none-any.whl
+        sha256: ae3f12953045f3c7c60e27f2af1ad862f14dee125b4ed9bcb8a842a5080dbf85
+      - type: file
+        url: https://files.pythonhosted.org/packages/7d/ec/40c0ddd29ef4daa6689a2b9c5ced47d5b58fa54ae149b19e9a97f4979c8c/meson_python-0.17.1-py3-none-any.whl
+        sha256: 30a75c52578ef14aff8392677b09c39346e0a24d2b2c6204b8ed30583c11269c
+      - type: file
+        url: https://files.pythonhosted.org/packages/90/99/158ad0609729111163fc1f674a5a42f2605371a4cf036d0441070e2f7455/setuptools-78.1.1-py3-none-any.whl
+        sha256: c3a9c4211ff4c309edb8b8c4f1cbfa7ae324c4ba9f91ff254e3d305b9fd54561
+      - type: file
+        url: https://files.pythonhosted.org/packages/e8/61/9dd3e68d2b6aa40a5fc678662919be3c3a7bf22cba5a6b4437619b77e156/pyproject_metadata-0.9.0-py3-none-any.whl
+        sha256: fc862aab066a2e87734333293b0af5845fe8ac6cb69c451a41551001e923be0b
+
+  - name: debugpy
+    buildsystem: simple
+    build-commands:
+      - pip3 install --verbose --exists-action=i --no-index --find-links="file://${PWD}" --prefix=${FLATPAK_DEST} --no-build-isolation .
+    sources:
+      - type: git
+        url: https://github.com/microsoft/debugpy.git
+        tag: v1.8.16
+
   - pypi-requirements.yaml
   - shared-modules/libusb/libusb.json
+  - name: dbus-python
+    buildsystem: simple
+    build-commands:
+      # Attempt to install dbus-python into the runtime prefix. This may build native extensions.
+      - pip3 install --verbose --exists-action=i --no-index --find-links="file://${PWD}" --prefix=${FLATPAK_DEST} dbus-python
+    sources: []
 
   - name: hidapi-libusb
     buildsystem: autotools

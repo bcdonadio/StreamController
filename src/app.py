@@ -13,7 +13,6 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
 # Import python modules
-from ast import main
 import multiprocessing
 import signal
 import sys
@@ -62,7 +61,7 @@ class App(Adw.Application):
         icon_theme.add_search_path(os.path.join(gl.top_level_dir, "Assets", "icons"))
 
         app_settings = gl.settings_manager.get_app_settings()
-        
+
         allow_white_mode = app_settings.get("ui", {}).get("allow-white-mode", False)
 
         # increment app launches
@@ -241,7 +240,7 @@ class App(Adw.Application):
                                      f"The plugin {plugin_id} could not be installed")
             self.set_working(False)
             return
-        
+
         success = asyncio.run(gl.store_backend.install_plugin(plugin))
         if not success:
             gl.app.send_notification("dialog-information-symbolic", "Failed to install plugin",
@@ -250,7 +249,7 @@ class App(Adw.Application):
             gl.app.send_notification("dialog-information-symbolic", "Plugin installed",
                                      f"The plugin {plugin_id} was successfully installed")
 
-        self.set_working(False)            
+        self.set_working(False)
 
     def set_working(self, working: bool) -> None:
         if working:
@@ -323,7 +322,7 @@ class App(Adw.Application):
                 resp_dialog = ResponsibleNotesDialog(self.get_active_window(), self.open_store)
                 resp_dialog.present()
             return
-        
+
         if gl.store is None:
             gl.store = Store(application=self, main_window=self.main_win)
         gl.store.present()
