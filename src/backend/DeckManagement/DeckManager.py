@@ -89,7 +89,21 @@ class DeckManager:
             except:
                 log.error("Failed to open deck. Maybe it's already connected to another instance?")
                 continue
-            deck_controller = DeckController(self, deck)
+            try:
+                # Initialize the DeckController and add it to the list.
+                deck_controller = DeckController(self, deck)
+            except Exception as e:
+                # Defensive: if initialization fails (e.g. HID read error), log and close the device, then continue.
+                try:
+                    serial = deck.get_serial_number() if hasattr(deck, "get_serial_number") else str(deck)
+                except Exception:
+                    serial = "<unknown>"
+                log.error(f"Failed to initialize DeckController for device {serial}: {e}")
+                try:
+                    deck.close()
+                except Exception:
+                    pass
+                continue
             self.deck_controller.append(deck_controller)
 
     def load_fake_decks(self):
@@ -176,7 +190,19 @@ class DeckManager:
                 return controller
 
     def add_newly_connected_deck(self, deck:StreamDeck, is_fake: bool = False):
-        deck_controller = DeckController(self, deck)
+        try:
+            deck_controller = DeckController(self, deck)
+        except Exception as e:
+            try:
+                serial = deck.get_serial_number() if hasattr(deck, "get_serial_number") else str(deck)
+            except Exception:
+                serial = "<unknown>"
+            log.error(f"Failed to initialize DeckController for newly connected device {serial}: {e}")
+            try:
+                deck.close()
+            except Exception:
+                pass
+            return
 
         # Check if ui is loaded - if not it will grab the controller automatically
         if recursive_hasattr(gl, "app.main_win.leftArea.deck_stack"):
